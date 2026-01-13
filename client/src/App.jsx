@@ -3,10 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
-
-function Feed() {
-  return <div style={{ padding: 16 }}>✅ Logged in. (Feed placeholder)</div>;
-}
+import Feed from "./pages/Feed.jsx";
 
 export default function App() {
   return (
