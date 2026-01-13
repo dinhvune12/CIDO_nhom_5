@@ -1,9 +1,8 @@
 import express from "express";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import pool from "../db/db.js";
 import authMiddleware from "../middleware/auth.js";
-
 
 const router = express.Router();
 
@@ -12,10 +11,7 @@ const signToken = (payload) => {
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn });
 };
 
-/**
- * POST /api/auth/register
- * body: { name, email, password }
- */
+// POST /api/auth/register
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body || {};
@@ -23,18 +19,15 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ message: "Thiếu dữ liệu" });
     }
 
-    // Check email exists
-    const [rows] = await pool.execute("SELECT id FROM users WHERE email = ?", [
+    const [exists] = await pool.execute("SELECT id FROM users WHERE email=?", [
       email,
     ]);
-    if (rows.length > 0) {
+    if (exists.length > 0) {
       return res.status(409).json({ message: "Email đã tồn tại" });
     }
 
-    // Hash password
     const password_hash = await bcrypt.hash(password, 10);
 
-    // Insert user (default role=user, locked=0)
     const [result] = await pool.execute(
       "INSERT INTO users (name, email, password_hash, role, locked) VALUES (?, ?, ?, 'user', 0)",
       [name, email, password_hash]
@@ -50,10 +43,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
-/**
- * POST /api/auth/login
- * body: { email, password }
- */
+// POST /api/auth/login
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body || {};
@@ -62,7 +52,7 @@ router.post("/login", async (req, res) => {
     }
 
     const [rows] = await pool.execute(
-      "SELECT id, name, email, password_hash, role, locked FROM users WHERE email = ?",
+      "SELECT id, name, email, password_hash, role, locked FROM users WHERE email=?",
       [email]
     );
 
@@ -71,7 +61,6 @@ router.post("/login", async (req, res) => {
     }
 
     const user = rows[0];
-
     if (user.locked === 1) {
       return res.status(403).json({ message: "Tài khoản bị khóa" });
     }
@@ -81,7 +70,6 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Sai tài khoản/mật khẩu" });
     }
 
-    // JWT payload
     const token = signToken({ uid: user.id, role: user.role });
 
     return res.json({
@@ -99,40 +87,21 @@ router.post("/login", async (req, res) => {
   }
 });
 
-/**
- * GET /api/auth/me
- * header: Authorization: Bearer <token>
- */
+// GET /api/auth/me
 router.get("/me", authMiddleware, async (req, res) => {
   try {
     const uid = req.user?.uid;
-    if (!uid) return res.status(401).json({ message: "Invalid token" });
-
     const [rows] = await pool.execute(
-      "SELECT id, name, email, role, locked, created_at FROM users WHERE id = ?",
+      "SELECT id, name, email, role, locked, created_at FROM users WHERE id=?",
       [uid]
     );
-
-    if (rows.length === 0) {
+    if (rows.length === 0)
       return res.status(404).json({ message: "User not found" });
-    }
-
-    const u = rows[0];
-    return res.json({
-      user: {
-        id: u.id,
-        name: u.name,
-        email: u.email,
-        role: u.role,
-        locked: u.locked,
-        created_at: u.created_at,
-      },
-    });
+    return res.json({ user: rows[0] });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Server error" });
   }
 });
-
 
 export default router;

@@ -1,8 +1,7 @@
 import jwt from "jsonwebtoken";
 
 /**
- * Expect header: Authorization: Bearer <token>
- * Decoded payload should include at least: { uid, role }
+ * Header: Authorization: Bearer <token>
  */
 export default function authMiddleware(req, res, next) {
   const header = req.headers.authorization || "";
@@ -14,7 +13,7 @@ export default function authMiddleware(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    req.user = decoded; // { uid, role, iat, exp }
     return next();
   } catch (err) {
     return res.status(401).json({ message: "Invalid token" });
