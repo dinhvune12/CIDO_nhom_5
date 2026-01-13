@@ -1,22 +1,15 @@
-import jwt from "jsonwebtoken";
+const jwt = require("jsonwebtoken");
 
-/**
- * Expect header: Authorization: Bearer <token>
- * Decoded payload should include at least: { uid, role }
- */
-export default function authMiddleware(req, res, next) {
-  const header = req.headers.authorization || "";
-  const [type, token] = header.split(" ");
-
-  if (type !== "Bearer" || !token) {
-    return res.status(401).json({ message: "No token provided" });
-  }
-
+module.exports = function auth(req, res, next) {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    return next();
-  } catch (err) {
-    return res.status(401).json({ message: "Invalid token" });
+    const header = req.headers.authorization || "";
+    const token = header.startsWith("Bearer ") ? header.slice(7) : null;
+    if (!token) return res.status(401).json({ msg: "Missing token" });
+
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = payload; // { uid, role, name }
+    next();
+  } catch (e) {
+    return res.status(401).json({ msg: "Invalid token" });
   }
-}
+};

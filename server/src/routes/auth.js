@@ -1,15 +1,13 @@
-import express from "express";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import pool from "../db/db.js";
+const express = require("express");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const pool = require("../db");
 
 const router = express.Router();
 
 router.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
-  if (!name || !email || !password) {
-    return res.status(400).json({ msg: "Thiếu dữ liệu" });
-  }
+  if (!name || !email || !password) return res.status(400).json({ msg: "Thiếu dữ liệu" });
 
   const [exist] = await pool.query("SELECT id FROM users WHERE email = ?", [email]);
   if (exist.length) return res.status(409).json({ msg: "Email đã tồn tại" });
@@ -48,4 +46,4 @@ router.post("/login", async (req, res) => {
   res.json({ token, user: { id: user.id, name: user.name, role: user.role } });
 });
 
-export default router;
+module.exports = router;
