@@ -1,8 +1,10 @@
+
 # TASK_WEEK_5 — UI theo doan.zip + CUỘC HẸN + CHAT (KHÔNG BOOKING)
 
 
 
-## 0) QUY TẮC CHỐNG CONFLICT (BẮT BUỘC)
+
+
 
 ### 0.1 Chỉ Leader/Integrator được sửa file “trung tâm”
 **KHÔNG ai ngoài Leader được sửa:**
