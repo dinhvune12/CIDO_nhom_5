@@ -1,4 +1,6 @@
-# TASK_WEEK_5 — UI đẹp hơn + ĐẶT BÀN + CUỘC HẸN + CHAT TRONG CUỘC HẸN (Cách 1
+# TASK_WEEK_5 — UI theo doan.zip + CUỘC HẸN + CHAT (KHÔNG BOOKING)
+
+
 
 ## 0) QUY TẮC CHỐNG CONFLICT (BẮT BUỘC)
 
@@ -13,37 +15,31 @@
 ➡️ Thành viên chỉ **tạo file mới** hoặc **sửa file thuộc module mình** theo phân công.
 
 ### 0.2 Chuẩn hoá commit message
-- `feat(bookings): ...`
 - `feat(appointments): ...`
+- `feat(chat): ...`
 - `feat(ui): ...`
 - `fix: ...`
 
 ---
 
 ## 1) MỤC TIÊU TUẦN 5 (DEMO ĐƯỢC)
-1) UI nhìn đẹp hơn (dark modern, layout có menu).
-2) **Đặt bàn**: tạo đặt bàn + xem danh sách đặt bàn của tôi + huỷ đặt bàn.
-3) **Cuộc hẹn**: tạo cuộc hẹn + join/leave.
-4) **Chat trong cuộc hẹn**: nhắn tin trong cuộc hẹn (polling).
+1) UI đẹp hơn (theo `doan.zip`): topbar + sidebar + card layout.
+2) **Cuộc hẹn**: tạo cuộc hẹn + list + join/leave.
+3) **Chat trong cuộc hẹn**: nhắn tin (polling).
 
 ---
 
 ## 2) API CONTRACT
-> Chi tiết xem file: `API_CONTRACT_WEEK5.md`
+> Xem file: `API_CONTRACT_WEEK5.md`
 
 Tóm tắt endpoints:
-- Bookings:
-  - `POST /api/bookings`
-  - `GET /api/bookings/me`
-  - `PATCH /api/bookings/:id/cancel`
-- Appointments:
-  - `GET /api/appointments`
-  - `POST /api/appointments`
-  - `GET /api/appointments/:id`
-  - `POST /api/appointments/:id/join`
-  - `POST /api/appointments/:id/leave`
-  - `GET /api/appointments/:id/messages?afterId=...`
-  - `POST /api/appointments/:id/messages`
+- `GET /api/appointments`
+- `POST /api/appointments`
+- `GET /api/appointments/:id`
+- `POST /api/appointments/:id/join`
+- `POST /api/appointments/:id/leave`
+- `GET /api/appointments/:id/messages?afterId=...`
+- `POST /api/appointments/:id/messages`
 
 Tất cả endpoint tạo/sửa đều cần:
 - `Authorization: Bearer <token>`
@@ -52,108 +48,94 @@ Tất cả endpoint tạo/sửa đều cần:
 
 ## 3) PHÂN CÔNG (4 người, mỗi người 12h)
 
-### A) MEMBER 1 — BE BOOKINGS (12h)
-**Branch:** `feat/bookings-api`
-
-**Chỉ tạo/sửa các file sau:**
-- `server/src/routes/bookings.js` (MỚI)
-
-**KHÔNG sửa:** `server/src/index.js`, SQL
-
-**Tasks**
-1. (3h) Tạo route file `bookings.js` + cấu trúc router
-2. (5h) `POST /api/bookings` (Auth required)
-   - body: `restaurant_id`, `reserved_at`, `people`, `note?`
-   - validate: restaurant_id, reserved_at hợp lệ; people > 0
-3. (2h) `GET /api/bookings/me` (Auth required)
-4. (2h) `PATCH /api/bookings/:id/cancel` (Auth required, chỉ owner)
-
-**DONE khi:**
-- Postman tạo booking OK, list booking OK, huỷ OK
-
----
-
-### B) MEMBER 2 — BE APPOINTMENTS + CHAT (12h)
+### A) MEMBER 1 — BE APPOINTMENTS CORE (12h)
 **Branch:** `feat/appointments-api`
 
 **Chỉ tạo/sửa các file sau:**
-- `server/src/routes/appointments.js` (MỚI)
-
-**KHÔNG sửa:** `server/src/index.js`, SQL
+- `server/src/routes/appointments.js` (SỬA/HOÀN THIỆN)
 
 **Tasks**
-1. (3h) Tạo route file `appointments.js` + cấu trúc router
-2. (7h) Appointments core:
-   - `GET /api/appointments`
-   - `POST /api/appointments`
-   - `GET /api/appointments/:id` (chỉ xem nếu đã join)
-   - `POST /api/appointments/:id/join`
-   - `POST /api/appointments/:id/leave`
-3. (2h) Messages:
-   - `GET /api/appointments/:id/messages?afterId=...`
-   - `POST /api/appointments/:id/messages`
+1. (3h) Chuẩn hoá `GET /api/appointments` trả:
+   - `appointments: [{ id, title, restaurant_id, scheduled_at, is_joined, participants_count }]`
+2. (5h) `POST /api/appointments` + validate
+3. (2h) `POST /api/appointments/:id/join` + `leave`
+4. (2h) `GET /api/appointments/:id` (chỉ cho phép nếu đã join)
 
 **DONE khi:**
-- Tạo cuộc hẹn -> join -> chat gửi/nhận ok (polling)
+- Tạo + join/leave + xem detail OK
 
 ---
 
-### C) MEMBER 3 — FE BOOKINGS UI (12h)
-**Branch:** `feat/bookings-ui`
+### B) MEMBER 2 — BE CHAT (12h)
+**Branch:** `feat/appointment-chat-api`
 
 **Chỉ tạo/sửa các file sau:**
-- `client/src/pages/BookingsPage.jsx` (MỚI)
-
-**KHÔNG sửa:** `client/src/App.jsx`, `client/src/main.jsx`
+- `server/src/routes/appointments.js` (SỬA phần messages)
 
 **Tasks**
-1. (7h) BookingsPage UI
-   - form đặt bàn: chọn quán (GET /api/restaurants), thời gian, số người, note
-   - list booking của tôi (GET /api/bookings/me)
-2. (3h) Cancel booking
-   - nút huỷ gọi `PATCH /api/bookings/:id/cancel`, refresh list
-3. (2h) UI states
-   - loading/empty/error + validate đơn giản
+1. (6h) `GET /api/appointments/:id/messages?afterId=...`
+2. (6h) `POST /api/appointments/:id/messages` + validate + auth + chỉ cho phép nếu joined
 
 **DONE khi:**
-- Đặt bàn và huỷ đặt bàn chạy được trong UI
+- Polling nhận tin nhắn + gửi tin nhắn OK
 
 ---
 
-### D) MEMBER 4 — FE APPOINTMENTS UI + CHAT UI (12h)
+### C) MEMBER 3 — FE UI THEO DOAN (12h)
+**Branch:** `feat/ui-doan-theme`
+
+**Chỉ tạo/sửa các file sau:**
+- `client/src/styles.css` (THAY theo doan.zip)
+- `client/src/components/AppShell.jsx` (SỬA layout theo doan.zip)
+
+**KHÔNG sửa:** `client/src/App.jsx`, `client/src/main.jsx` (Leader làm)
+
+**Tasks**
+1. (7h) Theme + layout (topbar/sidebar/card)
+2. (5h) Refactor UI classes ở Feed/Restaurants nếu cần (ưu tiên không đụng quá nhiều file)
+
+**DONE khi:**
+- UI chạy mượt, đồng nhất theme
+
+---
+
+### D) MEMBER 4 — FE APPOINTMENTS + CHAT UI (12h)
 **Branch:** `feat/appointments-ui`
 
 **Chỉ tạo/sửa các file sau:**
-- `client/src/pages/AppointmentsPage.jsx` (MỚI)
-- `client/src/pages/AppointmentDetail.jsx` (MỚI)
-
-**KHÔNG sửa:** `client/src/App.jsx`, `client/src/main.jsx`
+- `client/src/pages/AppointmentsPage.jsx` (SỬA/HOÀN THIỆN)
+- `client/src/pages/AppointmentDetail.jsx` (SỬA/HOÀN THIỆN)
 
 **Tasks**
-1. (7h) AppointmentsPage
-   - list (GET /api/appointments)
-   - create (POST /api/appointments)
-   - join/leave
-2. (5h) AppointmentDetail (chat)
-   - show participants + messages
-   - polling 2–3s (GET messages?afterId=)
-   - gửi tin nhắn (POST message)
+1. (7h) AppointmentsPage: list + create + join/leave
+2. (5h) AppointmentDetail: participants + chat polling + send
 
 **DONE khi:**
-- Tạo cuộc hẹn -> join -> vào detail chat được
+- Tạo cuộc hẹn -> join -> chat OK
 
 ---
 
 ## 4) LEADER / INTEGRATOR WORK (Leader làm)
 **Branch:** `chore/integrate-week5`
 
-### 4.1 Backend mount routes (Leader sửa)
-- `server/src/index.js`
-  - `app.use("/api/bookings", bookingsRoutes);`
-  - `app.use("/api/appointments", appointmentsRoutes);`
-
-### 4.2 SQL tuần 5 (Leader add file + hướng dẫn import)
-- Add file: `server/sql/week5.sql`
-- Import:
+1) Backend mount routes trong `server/src/index.js`
+   - `/api/appointments` -> `routes/appointments.js`
+   - **KHÔNG mount bookings**
+2) Frontend mount routes trong `client/src/App.jsx`
+   - `/appointments`
+   - `/appointments/:id`
+3) Ensure `client/src/main.jsx` import `./styles.css`
+4) Import SQL week 5 (chỉ appointment/chat):
 ```bash
 mysql -u root -p foodbook < server/sql/week5.sql
+```
+
+---
+
+## 5) CHECKLIST CUỐI TUẦN (DEMO)
+- [ ] DB `foodbook` import schema + seed + week5.sql
+- [ ] Register/Login OK
+- [ ] Appointments list/create OK
+- [ ] Join/Leave OK
+- [ ] Appointment chat polling OK
+- [ ] UI theo doan.zip
