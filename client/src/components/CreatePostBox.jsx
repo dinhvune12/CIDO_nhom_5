@@ -1,161 +1,150 @@
-import React, { useEffect, useMemo, useState } from "react";
-import http from "../api/http.js";
+import { useEffect, useMemo, useState } from "react";
+import { Star, FileText, Image } from "lucide-react";
 
-export default function CreatePostBox({ onCreated }) {
+function StarPicker({ value, onChange }) {
+  const v = Number(value || 0);
+  return (
+    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+      {[1,2,3,4,5].map((s) => (
+        <button
+          key={s}
+          type="button"
+          className="btn"
+          onClick={() => onChange?.(s)}
+          style={{
+            padding: "6px",
+            background: s <= v ? "#ffd700" : undefined,
+            borderColor: s <= v ? "#ffd700" : undefined,
+            color: s <= v ? "#000" : undefined,
+          }}
+        >
+          <Star size={16} fill={s <= v ? "currentColor" : "none"} />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export default function CreatePostBox({ restaurants = [], onCreated }) {
   const [content, setContent] = useState("");
   const [type, setType] = useState("status");
   const [restaurantId, setRestaurantId] = useState("");
-  const [rating, setRating] = useState("5");
+  const [rating, setRating] = useState(5);
   const [imageUrl, setImageUrl] = useState("");
-
-  const [restaurants, setRestaurants] = useState([]);
-  const [loadingRestaurants, setLoadingRestaurants] = useState(false);
-
-  const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState("");
-  const [ok, setOk] = useState("");
-
-  const isReview = type === "review";
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
-    const load = async () => {
-      setLoadingRestaurants(true);
-      try {
-        const res = await http.get("/api/restaurants");
-        if (!mounted) return;
-        setRestaurants(res.data?.restaurants || []);
-      } catch {
-        // ignore
-      } finally {
-        if (mounted) setLoadingRestaurants(false);
-      }
-    };
-    load();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    if (type !== "review") {
+      setRestaurantId("");
+      setRating(5);
+    }
+  }, [type]);
 
-  const canSubmit = useMemo(() => {
-    if (!content.trim()) return false;
-    if (!isReview) return true;
-    if (!restaurantId) return false;
-    const r = Number(rating);
-    return Number.isFinite(r) && r >= 0 && r <= 5;
-  }, [content, isReview, restaurantId, rating]);
+  const headerPill = useMemo(() => {
+    return type === "review" ? "Review" : "Status";
+  }, [type]);
 
-  const submit = async (e) => {
-    e.preventDefault();
+  async function submit(e) {
+    e?.preventDefault?.();
     setErr("");
-    setOk("");
-    if (!canSubmit) return;
+    if (!content.trim()) return setErr("Bạn chưa nhập nội dung.");
 
-    setSubmitting(true);
+    const payload = {
+      content: content.trim(),
+      type,
+      image_url: imageUrl.trim() || undefined,
+    };
+
+    if (type === "review") {
+      if (!restaurantId) return setErr("Vui lòng chọn quán để review.");
+      payload.restaurant_id = Number(restaurantId);
+      payload.rating = Number(rating);
+    }
+
     try {
-      const payload = {
-        content: content.trim(),
-        type,
-        image_url: imageUrl.trim() || null,
-      };
-      if (isReview) {
-        payload.restaurant_id = Number(restaurantId);
-        payload.rating = Number(rating);
-      }
-
-      await http.post("/api/posts", payload);
-      setOk("Đăng bài thành công!");
+      setBusy(true);
+      await onCreated?.(payload);
       setContent("");
       setImageUrl("");
       setType("status");
-      setRestaurantId("");
-      setRating("5");
-      onCreated?.();
-    } catch (e2) {
-      const msg = e2?.response?.data?.message || e2?.response?.data?.msg || "Tạo bài thất bại";
-      setErr(msg);
+    } catch {
+      // parent handles
     } finally {
-      setSubmitting(false);
+      setBusy(false);
     }
-  };
+  }
 
   return (
-    <form
-      onSubmit={submit}
-      style={{
-        border: "1px solid #e5e7eb",
-        borderRadius: 12,
-        padding: 12,
-        marginBottom: 16,
-        background: "white",
-      }}
-    >
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <label style={{ display: "flex", gap: 6, alignItems: "center" }}>
-          <span style={{ fontSize: 12, color: "#374151" }}>Type</span>
-          <select value={type} onChange={(e) => setType(e.target.value)}>
-            <option value="status">status</option>
-            <option value="review">review</option>
-          </select>
-        </label>
+    <div className="card composer-card">
+      <div style={{ textAlign: "center", marginBottom: 16 }}>
+        <h3 style={{ margin: 0, fontSize: 18 }}>Tạo bài viết</h3>
+      </div>
 
-        {isReview && (
-          <label style={{ display: "flex", gap: 6, alignItems: "center" }}>
-            <span style={{ fontSize: 12, color: "#374151" }}>Restaurant</span>
+      <form onSubmit={submit} className="composer-form">
+        <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
+          <button
+            type="button"
+            className={`tab ${type === "status" ? "active" : ""}`}
+            onClick={() => setType("status")}
+          >
+            <FileText size={16} style={{ marginRight: 6 }} />
+            Status
+          </button>
+          <button
+            type="button"
+            className={`tab ${type === "review" ? "active" : ""}`}
+            onClick={() => setType("review")}
+          >
+            <Star size={16} style={{ marginRight: 6 }} />
+            Review
+          </button>
+        </div>
+
+        {type === "review" && (
+          <div style={{ marginBottom: 12 }}>
             <select
               value={restaurantId}
               onChange={(e) => setRestaurantId(e.target.value)}
-              disabled={loadingRestaurants}
+              style={{ width: "100%", marginBottom: 8 }}
             >
-              <option value="">-- chọn quán --</option>
+              <option value="">Chọn quán...</option>
               {restaurants.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
-                </option>
+                <option key={r.id} value={r.id}>{r.name}</option>
               ))}
             </select>
-          </label>
+            <StarPicker value={rating} onChange={setRating} />
+          </div>
         )}
 
-        {isReview && (
-          <label style={{ display: "flex", gap: 6, alignItems: "center" }}>
-            <span style={{ fontSize: 12, color: "#374151" }}>Rating</span>
-            <select value={rating} onChange={(e) => setRating(e.target.value)}>
-              {[0, 1, 2, 3, 4, 5].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-      </div>
+        <div className="composer-row">
+          <div className="avatar">U</div>
+          <div className="composer-input">
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Viết gì đó..."
+            />
+          </div>
+        </div>
 
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        rows={3}
-        placeholder="Bạn đang nghĩ gì?"
-        style={{ width: "100%", marginTop: 10, padding: 10, borderRadius: 10 }}
-      />
+        <div style={{ marginTop: 10 }}>
+          <input
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="URL ảnh..."
+            style={{ marginBottom: 10 }}
+          />
+        </div>
 
-      <input
-        value={imageUrl}
-        onChange={(e) => setImageUrl(e.target.value)}
-        placeholder="(tuỳ chọn) Image URL"
-        style={{ width: "100%", marginTop: 8, padding: 10, borderRadius: 10 }}
-      />
+        <div className="composer-actions">
+          <button className="btn-primary" disabled={busy}>
+            {busy ? "Đang đăng..." : "Đăng"}
+          </button>
+        </div>
 
-      {err && <div style={{ color: "crimson", marginTop: 8 }}>{err}</div>}
-      {ok && <div style={{ color: "green", marginTop: 8 }}>{ok}</div>}
-
-      <button
-        type="submit"
-        disabled={!canSubmit || submitting}
-        style={{ marginTop: 10 }}
-      >
-        {submitting ? "Đang đăng..." : "Đăng bài"}
-      </button>
-    </form>
+        {err && <div className="err" style={{ marginTop: 10 }}>{err}</div>}
+      </form>
+    </div>
   );
 }

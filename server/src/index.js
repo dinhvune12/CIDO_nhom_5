@@ -5,6 +5,7 @@ import cors from "cors";
 import authRoutes from "./routes/auth.js";
 import postsRoutes from "./routes/posts.js";
 import restaurantsRoutes from "./routes/restaurants.js";
+import appointmentsRoutes from "./routes/appointments.js";
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/posts", postsRoutes);
 app.use("/api/restaurants", restaurantsRoutes);
+app.use("/api/appointments", appointmentsRoutes);
 
 app.get("/health", (req, res) => {
   res.json({ status: "OK", message: "Server is running" });

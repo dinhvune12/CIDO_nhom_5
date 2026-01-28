@@ -1,72 +1,69 @@
-import React from "react";
+import { useMemo } from "react";
+import { Heart, MessageCircle, Share, Star } from "lucide-react";
 
-function formatDate(dt) {
-  try {
-    const d = new Date(dt);
-    return d.toLocaleString();
-  } catch {
-    return "";
-  }
+function formatDateTime(dt) {
+  if (!dt) return "";
+  const d = new Date(dt);
+  return d.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
 }
 
-export default function PostCard({ post }) {
-  if (!post) return null;
+function initials(name) {
+  const n = (name || "U").trim();
+  if (!n) return "U";
+  const parts = n.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0].slice(0, 1).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+export default function PostCard({ post, onLike }) {
+  const userName = post?.user?.name || "Unknown";
+  const created = post?.created_at ? formatDateTime(post.created_at) : "";
+  const isReview = post?.type === "review";
+
+  const tagText = useMemo(() => {
+    if (!isReview) return "status";
+    const rName = post?.restaurant?.name || "Restaurant";
+    return `review • ${rName}`;
+  }, [isReview, post]);
 
   return (
-    <div
-      style={{
-        border: "1px solid #e5e7eb",
-        borderRadius: 12,
-        padding: 12,
-        marginBottom: 12,
-        background: "white",
-      }}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <div>
-          <b>{post.user?.name || "Unknown"}</b>
-          <span style={{ marginLeft: 8, color: "#6b7280", fontSize: 12 }}>
-            {formatDate(post.created_at)}
-          </span>
+    <div className="card post-card">
+      <div className="post-head">
+        <div className="post-left">
+          <div className="avatar">{initials(userName)}</div>
+          <div className="post-meta">
+            <div className="post-author">{userName}</div>
+            <div className="post-time">{created}</div>
+          </div>
         </div>
-        <span
-          style={{
-            fontSize: 12,
-            padding: "2px 8px",
-            borderRadius: 999,
-            background: post.type === "review" ? "#ecfeff" : "#f3f4f6",
-            border: "1px solid #e5e7eb",
-          }}
-        >
-          {post.type}
-        </span>
+        {isReview && (
+          <div className="post-rating">
+            <Star size={14} fill="currentColor" />
+            <span>{post?.rating ?? 0}</span>
+          </div>
+        )}
       </div>
 
-      {post.type === "review" && (
-        <div style={{ marginTop: 8, color: "#111827" }}>
-          <div>
-            <b>Quán:</b> {post.restaurant_name || "(không có)"}
-          </div>
-          <div>
-            <b>Rating:</b> {post.rating ?? "-"}/5
-          </div>
+      <div className="post-content">{post?.content}</div>
+
+      {post?.image_url && (
+        <div className="post-media">
+          <img src={post.image_url} alt="post" style={{ width: "100%", borderRadius: "8px" }} />
         </div>
       )}
 
-      <div style={{ marginTop: 10, whiteSpace: "pre-wrap" }}>{post.content}</div>
-
-      {post.image_url && (
-        <div style={{ marginTop: 10 }}>
-          <img
-            src={post.image_url}
-            alt="post"
-            style={{ maxWidth: "100%", borderRadius: 10 }}
-          />
-        </div>
-      )}
-
-      <div style={{ marginTop: 10, color: "#6b7280", fontSize: 12 }}>
-        👍 {post.like_count ?? 0} · 💬 {post.comment_count ?? 0}
+      <div className="post-actions">
+        <button type="button" className="act act-like" onClick={onLike}>
+          <Heart size={16} />
+          <span>{post?.like_count ?? 0}</span>
+        </button>
+        <button type="button" className="act act-comment" disabled>
+          <MessageCircle size={16} />
+          <span>{post?.comment_count ?? 0}</span>
+        </button>
+        <button type="button" className="act act-share" disabled>
+          <Share size={16} />
+        </button>
       </div>
     </div>
   );

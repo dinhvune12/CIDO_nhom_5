@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { Clock, Utensils, User } from "lucide-react";
 import http from "../api/http";
+
+function formatDateTime(dt) {
+  if (!dt) return "";
+  const d = new Date(dt);
+  return d.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
+}
 
 export default function AppointmentDetail() {
   const { id } = useParams();
@@ -68,18 +75,30 @@ export default function AppointmentDetail() {
 
       {appointment && (
         <div className="card padded">
-          <div style={{ fontWeight: 1000, fontSize: 18 }}>{appointment.title}</div>
-          <div className="muted" style={{ marginTop: 8 }}>⏰ {appointment.meeting_time}</div>
+          <div style={{ fontWeight: 900, fontSize: 20, marginBottom: 12 }}>{appointment.title}</div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+            <Clock size={16} color="#007bff" />
+            <span>{formatDateTime(appointment.meeting_time)}</span>
+          </div>
+
           {appointment.restaurant?.name && (
-            <div className="muted" style={{ marginTop: 6 }}>🍽️ {appointment.restaurant.name}</div>
-          )}
-          {appointment.description && (
-            <div style={{ marginTop: 10, whiteSpace: "pre-wrap" }}>{appointment.description}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+              <Utensils size={16} color="#28a745" />
+              <span>{appointment.restaurant.name}</span>
+            </div>
           )}
 
-          <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {appointment.description && (
+            <div style={{ marginBottom: 12, lineHeight: 1.6 }}>{appointment.description}</div>
+          )}
+
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {participants.map((p) => (
-              <span key={p.id} className="pill">👤 {p.name}</span>
+              <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 10px", backgroundColor: "rgba(111, 66, 193, 0.1)", borderRadius: "999px", fontSize: 14 }}>
+                <User size={14} color="#6f42c1" />
+                <span>{p.name}</span>
+              </div>
             ))}
           </div>
         </div>
@@ -93,7 +112,7 @@ export default function AppointmentDetail() {
             <div key={m.id} className="chat-bubble">
               <div style={{ fontWeight: 900 }}>{m.user?.name || "User"}</div>
               <div style={{ marginTop: 4, whiteSpace: "pre-wrap" }}>{m.content}</div>
-              <div className="muted" style={{ marginTop: 6, fontSize: 12 }}>{m.created_at}</div>
+              <div className="muted" style={{ marginTop: 6, fontSize: 12 }}>{formatDateTime(m.created_at)}</div>
             </div>
           ))}
           {!messages.length && <div className="muted">Chưa có tin nhắn</div>}

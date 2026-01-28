@@ -1,63 +1,76 @@
-import React, { useEffect, useState } from "react";
-import http from "../api/http.js";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { Star, MapPin } from "lucide-react";
+import http from "../api/http";
 
 export default function RestaurantDetail() {
   const { id } = useParams();
   const [restaurant, setRestaurant] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    let mounted = true;
-    const load = async () => {
+  async function load() {
+    setErr("");
+    try {
       setLoading(true);
-      setErr("");
-      try {
-        const res = await http.get(`/api/restaurants/${id}`);
-        if (!mounted) return;
-        setRestaurant(res.data?.restaurant || null);
-      } catch (e) {
-        if (!mounted) return;
-        setErr(e?.response?.data?.message || "Load failed");
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-    load();
-    return () => {
-      mounted = false;
-    };
-  }, [id]);
+      const res = await http.get(`/api/restaurants/${id}`);
+      setRestaurant(res.data.restaurant);
+    } catch (e) {
+      setErr(e.response?.data?.message || "Server error");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { load(); }, [id]);
 
   return (
-    <div style={{ padding: 16, maxWidth: 860, margin: "0 auto" }}>
-      <Link to="/restaurants">← Back</Link>
+    <div className="feed-wrap col">
+      <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
+        <Link className="pill" to="/restaurants">← Back</Link>
+        <Link className="pill" to="/appointments">Tạo cuộc hẹn →</Link>
+      </div>
 
-      {err && <div style={{ color: "crimson", marginTop: 8 }}>{err}</div>}
+      {loading && <div className="pill">Đang tải...</div>}
+      {err && <div className="err">{err}</div>}
 
-      {loading ? (
-        <p>Loading...</p>
-      ) : !restaurant ? (
-        <p>Không có dữ liệu.</p>
-      ) : (
-        <div
-          style={{
-            marginTop: 12,
-            border: "1px solid #e5e7eb",
-            borderRadius: 12,
-            padding: 16,
-            background: "white",
-          }}
-        >
-          <h2 style={{ marginTop: 0 }}>{restaurant.name}</h2>
-          <p style={{ margin: 0, color: "#374151" }}>{restaurant.address}</p>
-          <p style={{ color: "#6b7280" }}>
-            {restaurant.area || ""} {restaurant.type ? `· ${restaurant.type}` : ""} {restaurant.price_range ? `· ${restaurant.price_range}` : ""}
-          </p>
-          <p>
-            ⭐ <b>{restaurant.rating_avg ?? "-"}</b>
-          </p>
+      {restaurant && (
+        <div className="card" style={{ padding: 16 }}>
+          {restaurant.image_url && (
+            <div style={{ marginBottom: 12 }}>
+              <img
+                src={restaurant.image_url}
+                alt={restaurant.name}
+                style={{ width: "100%", height: 360, objectFit: "cover", borderRadius: 8, cursor: "pointer" }}
+                onClick={() => window.open(restaurant.image_url, "_blank")}
+              />
+            </div>
+          )}
+
+          <div style={{ fontSize: 24, fontWeight: 900, marginBottom: 8 }}>{restaurant.name}</div>
+
+          {restaurant.address && (
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
+              <MapPin size={16} />
+              <span>{restaurant.address}</span>
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+            {restaurant.area && <span className="pill">{restaurant.area}</span>}
+            {restaurant.type && <span className="pill">{restaurant.type}</span>}
+            {restaurant.price_range && <span className="pill">{restaurant.price_range}</span>}
+            {typeof restaurant.rating_avg !== "undefined" && (
+              <div style={{ display: "flex", alignItems: "center", gap: 4, backgroundColor: "#ffd700", color: "#333", padding: "6px 10px", borderRadius: "999px", fontWeight: "bold" }}>
+                <Star size={14} fill="currentColor" />
+                <span>{Number(restaurant.rating_avg).toFixed(1)}</span>
+              </div>
+            )}
+          </div>
+
+          {restaurant.description && (
+            <div style={{ lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{restaurant.description}</div>
+          )}
         </div>
       )}
     </div>

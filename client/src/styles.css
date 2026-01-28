@@ -21,7 +21,7 @@
   --radius2: 12px;
   --gap: 14px;
 
-  --max: 1180px;
+  --max: 1320px;
   --feed: 680px;
 }
 
@@ -2435,6 +2435,7 @@ input {
   color: inherit;
   display: flex;
   flex-direction: column;
+  height: 100%; /* ensure cards stretch equally in grid */
 }
 
 .restaurant-card:hover{
@@ -2480,6 +2481,7 @@ input {
   flex-direction: column;
   gap: 8px;
   flex: 1;
+  min-width: 0; /* prevent overflow caused by long text */
 }
 
 .restaurant-card-name{
@@ -2487,6 +2489,8 @@ input {
   font-size: 16px;
   color: var(--text);
   line-height: 1.4;
+  white-space: normal; /* allow wrapping */
+  word-break: break-word;
 }
 
 .restaurant-card-meta{
@@ -2520,6 +2524,9 @@ input {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
+
+/* ensure grid items align to top and don't stretch oddly */
+.grid3{ align-items: start; }
 
 @media (max-width: 768px){
   .chat-page{
@@ -3505,7 +3512,7 @@ input {
 .stack.center{ align-items:center; }
 
 /* Padded card helper */
-.card.padded{ padding: 14px; }
+.card.padded{ padding: 12px; }
 
 /* Buttons used in CIDO pages */
 .btn{
@@ -3542,8 +3549,8 @@ input {
 }
 .grid3{
   display:grid;
-  grid-template-columns: repeat(3, minmax(0,1fr));
-  gap: 12px;
+  grid-template-columns: repeat(3, minmax(320px, 1fr));
+  gap: 16px;
 }
 @media (max-width: 980px){
   .grid3{ grid-template-columns: repeat(2, minmax(0,1fr)); }
@@ -3556,10 +3563,118 @@ input {
 label{ display:block; margin-bottom: 6px; font-weight: 700; color: var(--muted); }
 
 /* Chat bubble tweaks */
-.chat-list{ display:flex; flex-direction:column; gap:10px; max-height: 420px; overflow:auto; padding-right: 6px; }
+.chat-list{ display:flex; flex-direction:column; gap:10px; max-height: 360px; overflow:auto; padding-right: 6px; }
 .chat-bubble{
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 10px 12px;
   background: rgba(0,0,0,.02);
 }
+
+/* ===== Auth pages ===== */
+.auth-container{ max-width: 920px; margin: 40px auto; padding: 0 12px; }
+.auth-card{
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 320px;
+  overflow: hidden;
+}
+.auth-left{
+  background: linear-gradient(135deg, #ff7a4a, #ff5a2f);
+  color: white;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+.auth-right{
+  padding: 22px;
+}
+.auth-left .pill{
+  background: rgba(255,255,255,0.12);
+  color: white;
+  border: none;
+}
+@media (max-width: 720px){
+  .auth-card{ grid-template-columns: 1fr; }
+  .auth-left{ display: none; }
+}
+
+/* ===== Auth form refinements ===== */
+.auth-right label{ display:block; margin-bottom:6px; font-weight:700; color:var(--muted); font-size:13px; }
+.auth-right input,
+.auth-right select,
+.auth-right textarea{
+  height:44px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(15,23,42,0.08);
+  background: #fff;
+  box-shadow: none;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.auth-right textarea{ min-height: 100px; height: auto; padding: 12px 14px; }
+.auth-right input:focus, .auth-right select:focus, .auth-right textarea:focus{
+  border-color: rgba(37,99,235,0.35);
+  box-shadow: 0 6px 18px rgba(37,99,235,0.08);
+}
+.auth-right input::placeholder, .auth-right textarea::placeholder{ color:#98a0b0; }
+
+.auth-right .btn{
+  height:44px;
+  border-radius: 8px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 800;
+}
+.auth-right .btn[disabled]{ opacity: .7; cursor: not-allowed; }
+
+.auth-right .btn.btn-primary{
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+  color: white;
+  border: none;
+  box-shadow: 0 8px 22px rgba(37,99,235,0.12);
+}
+.auth-right .btn.btn-primary:hover{ transform: translateY(-2px); }
+
+/* small secondary button (show/hide) */
+.auth-right .btn.small{
+  min-width: 72px;
+  padding: 6px 10px;
+  height:44px;
+  background: rgba(0,0,0,0.04);
+  border: 1px solid rgba(15,23,42,0.06);
+}
+
+/* make full width buttons inside form */
+.auth-right .full{ width:100%; display:block; }
+
+/* reduce card rounding for a more professional look */
+.auth-card{ border-radius: 12px; box-shadow: 0 10px 30px rgba(15,23,42,0.06); overflow: hidden; }
+
+/* ===== Appointments form inputs uniformity ===== */
+.appointments-form label{ display:block; margin-bottom:6px; font-weight:700; color:var(--muted); font-size:13px; }
+.appointments-form input,
+.appointments-form select,
+.appointments-form textarea{
+  height:44px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(15,23,42,0.08);
+  background: #fff;
+  box-sizing: border-box;
+  width: 100%;
+  font-size: 14px;
+}
+.appointments-form textarea{ min-height: 92px; height: auto; padding: 12px 14px; }
+.appointments-form .grid > div { min-width: 0; }
+.appointments-form .btn.small{ height:44px; }
+.appointments-form .btn.btn-primary{ height:44px; border-radius:8px; }

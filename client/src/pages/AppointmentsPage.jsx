@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { Clock, Utensils, Users } from "lucide-react";
 import http from "../api/http";
 
 function toMysqlDatetime(localValue) {
@@ -8,6 +9,12 @@ function toMysqlDatetime(localValue) {
   const [datePart, timePart] = localValue.split("T");
   if (!datePart || !timePart) return "";
   return `${datePart} ${timePart}:00`;
+}
+
+function formatDateTime(dt) {
+  if (!dt) return "";
+  const d = new Date(dt);
+  return d.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
 }
 
 export default function AppointmentsPage() {
@@ -93,11 +100,8 @@ export default function AppointmentsPage() {
 
   return (
     <div className="col" style={{ gap: 14 }}>
-      <div className="card padded">
-        <div style={{ fontWeight: 1000, fontSize: 18 }}>Cuộc hẹn</div>
-        <div className="muted" style={{ marginTop: 4 }}>
-          Tạo cuộc hẹn rủ bạn đi ăn • Join cuộc hẹn để xem chi tiết và chat trong phòng
-        </div>
+      <div className="card padded appointments-form">
+        <h2 style={{ margin: "0 0 16px 0", textAlign: "center" }}>Cuộc hẹn</h2>
 
         <div className="grid" style={{ marginTop: 12 }}>
           <div>
@@ -152,17 +156,24 @@ export default function AppointmentsPage() {
       <div className="grid3">
         {appointments.map((a) => (
           <div key={a.id} className="card padded">
-            <div style={{ fontWeight: 1000 }}>{a.title}</div>
+            <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 8 }}>{a.title}</div>
 
-            <div className="muted" style={{ marginTop: 8 }}>⏰ {a.meeting_time}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+              <Clock size={16} color="#007bff" />
+              <span style={{ fontSize: 14 }}>{formatDateTime(a.meeting_time)}</span>
+            </div>
 
             {(a.restaurant?.name || restaurantsById.get(String(a.restaurant_id))?.name) && (
-              <div className="muted" style={{ marginTop: 6 }}>
-                🍽️ {a.restaurant?.name || restaurantsById.get(String(a.restaurant_id))?.name}
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                <Utensils size={16} color="#28a745" />
+                <span style={{ fontSize: 14 }}>{a.restaurant?.name || restaurantsById.get(String(a.restaurant_id))?.name}</span>
               </div>
             )}
 
-            <div className="muted" style={{ marginTop: 6 }}>👥 {a.participants_count ?? 0} người</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <Users size={16} color="#6f42c1" />
+              <span style={{ fontSize: 14 }}>{a.participants_count ?? 0} participants</span>
+            </div>
 
             <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
               <Link className="btn" to={`/appointments/${a.id}`}>Mở</Link>
