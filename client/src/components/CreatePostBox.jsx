@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Star, FileText, Image } from "lucide-react";
 
 function StarPicker({ value, onChange }) {
@@ -30,7 +30,9 @@ export default function CreatePostBox({ restaurants = [], onCreated }) {
   const [type, setType] = useState("status");
   const [restaurantId, setRestaurantId] = useState("");
   const [rating, setRating] = useState(5);
-  const [imageUrl, setImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const fileInputRef = useRef(null);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -53,8 +55,24 @@ export default function CreatePostBox({ restaurants = [], onCreated }) {
     const payload = {
       content: content.trim(),
       type,
-      image_url: imageUrl.trim() || undefined,
+      image_url: undefined,
     };
+
+    // if a file was selected, convert to data URL
+    if (imageFile) {
+      const fileToDataUrl = (file) =>
+        new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      try {
+        payload.image_url = await fileToDataUrl(imageFile);
+      } catch {
+        // ignore conversion error
+      }
+    }
 
     if (type === "review") {
       if (!restaurantId) return setErr("Vui lòng chọn quán để review.");
@@ -66,7 +84,8 @@ export default function CreatePostBox({ restaurants = [], onCreated }) {
       setBusy(true);
       await onCreated?.(payload);
       setContent("");
-      setImageUrl("");
+      setImageFile(null);
+      setPreviewUrl("");
       setType("status");
     } catch {
       // parent handles
@@ -130,11 +149,32 @@ export default function CreatePostBox({ restaurants = [], onCreated }) {
 
         <div style={{ marginTop: 10 }}>
           <input
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            placeholder="URL ảnh..."
-            style={{ marginBottom: 10 }}
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (!f) return;
+              setImageFile(f);
+              try { setPreviewUrl(URL.createObjectURL(f)); } catch {}
+            }}
           />
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <button type="button" className="btn" onClick={() => fileInputRef.current?.click()}>
+              <Image size={16} style={{ marginRight: 8 }} /> Chọn ảnh
+            </button>
+            {previewUrl ? (
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <img src={previewUrl} alt="preview" style={{ width: 72, height: 52, objectFit: "cover", borderRadius: 6 }} />
+                <button type="button" className="btn" onClick={() => { setImageFile(null); setPreviewUrl(""); fileInputRef.current.value = null; }}>
+                  Xoá
+                </button>
+              </div>
+            ) : (
+              <div className="muted">Không có ảnh</div>
+            )}
+          </div>
         </div>
 
         <div className="composer-actions">
