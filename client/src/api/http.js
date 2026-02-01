@@ -1,11 +1,8 @@
 import axios from "axios";
 
-export const API_BASE =
-  import.meta.env.VITE_API_BASE || "http://localhost:5000";
-
-const http = axios.create({
-  baseURL: API_BASE,
-  headers: { "Content-Type": "application/json" },
+export const http = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:5000" : "/api"),
+  withCredentials: true, // nếu backend dùng cookie/refreshToken
 });
 
 http.interceptors.request.use((config) => {
@@ -13,5 +10,3 @@ http.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
-
-export default http;

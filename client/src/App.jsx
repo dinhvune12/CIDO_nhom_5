@@ -1,39 +1,84 @@
-import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import LoginPage from "./pages/LoginPage.jsx";
-import RegisterPage from "./pages/RegisterPage.jsx";
-import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import AppShell from "./components/AppShell.jsx";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import FeedPage from "./pages/FeedPage";
+import RestaurantsPage from "./pages/RestaurantsPage";
+import RestaurantDetailPage from "./pages/RestaurantDetailPage";
+import AdminPage from "./pages/admin/AdminPage";
+import ProtectedRoute from "./components/ProtectedRoute";
+import PostDetailPage from "./pages/PostDetailPage";
+import KeoAnPage from "./pages/KeoAnPage";
+import ProfilePage from "./pages/ProfilePage";
+import ChatPage from "./pages/ChatPage";
 
-import Feed from "./pages/Feed.jsx";
-import RestaurantsPage from "./pages/RestaurantsPage.jsx";
-import RestaurantDetail from "./pages/RestaurantDetail.jsx";
-import AppointmentsPage from "./pages/AppointmentsPage.jsx";
-import AppointmentDetail from "./pages/AppointmentDetail.jsx";
-
-function WithShell({ children }) {
+function Placeholder({ title }) {
   return (
-    <ProtectedRoute>
-      <AppShell>{children}</AppShell>
-    </ProtectedRoute>
+    <div style={{ padding: 20 }}>
+      <h2 style={{ margin: 0 }}>{title}</h2>
+      <p style={{ marginTop: 8, color: "#666" }}>Trang này mình sẽ làm tiếp sau.</p>
+    </div>
   );
 }
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      {/* Public */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
-      <Route path="/feed" element={<WithShell><Feed /></WithShell>} />
-      <Route path="/restaurants" element={<WithShell><RestaurantsPage /></WithShell>} />
-      <Route path="/restaurants/:id" element={<WithShell><RestaurantDetail /></WithShell>} />
+      {/* Share link: cho phép mở link bài viết */}
+      <Route path="/posts/:id" element={<PostDetailPage />} />
 
-      <Route path="/appointments" element={<WithShell><AppointmentsPage /></WithShell>} />
-      <Route path="/appointments/:id" element={<WithShell><AppointmentDetail /></WithShell>} />
+      {/* Public pages (feed and restaurants are viewable by guests) */}
+      <Route path="/feed" element={<FeedPage />} />
+      <Route path="/restaurants" element={<RestaurantsPage />} />
+      <Route path="/restaurants/:id" element={<RestaurantDetailPage />} />
 
-      <Route path="*" element={<div style={{ padding: 16 }}>404</div>} />
+      <Route
+        path="/keo-an"
+        element={
+          <ProtectedRoute>
+            <KeoAnPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/chat"
+        element={
+          <ProtectedRoute>
+            <ChatPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/me"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/users/:id"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute role="admin">
+            <AdminPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route path="/" element={<Navigate to="/feed" />} />
+      <Route path="*" element={<Navigate to="/feed" />} />
     </Routes>
   );
 }
